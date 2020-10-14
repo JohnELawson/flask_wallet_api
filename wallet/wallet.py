@@ -64,26 +64,63 @@ def get_transactions(username: str, limit: int = 10) -> Mapping[str, Any]:
     return data
 
 
-def make_transfer(from_username: str, to_user: str, amount: float) -> bool:
+def make_transfer(from_username: str, to_user: str, amount: float) -> Mapping[str, str]:
     """ pay a user """
+    # need some sort of strong consistency / mutex around this to ensure the funds arent spent twice at the same time
+
     db = get_db()
-    # from_user = db.execute(
-    #     "SELECT *"
-    #     " FROM wallet w JOIN user u ON w.user_id = u.id"
-    #     " WHERE u.username = ?",
-    #     (from_username,)
-    # ).fetchone()
-    # db.execute(
-    #     "SELECT ",
-    #     (title, body, g.user["id"]),
-    # )
-    # db.commit()
+
+    # get sender id
+    sender = db.execute("SELECT * FROM user WHERE username = ?", (from_username,)).fetchone()
+
+    # check receiver exists
+    receiver = db.execute("SELECT * FROM user WHERE id = ?", (to_user,)).fetchone()
+    if receiver is None:
+        return {
+            "status": "error",
+            "reason": "receiving user does not exist"
+        }
+
+    # check sender has enough funds
+    # assuming one currency
+    from_balance = get_balance(from_username)["balance"]
+    if from_balance < amount:
+        return {
+            "status": "error",
+            "reason": "sending user does not have enough funds"
+        }
+
+    to_balance = get_balance(from_username)
 
     # update from wallet
-    # update to wallet
+    db.execute(
+        "UPDATE wallet"
+        " SET value = value - ?"
+        " WHERE user_id = ?",
+        (amount, sender["id"]),
+    )
+    db.commit()
+
+    # update from wall
+    db.execute(
+        "UPDATE wallet"
+        " SET value = value + ?"
+        " WHERE user_id = ?",
+        (amount, to_user),
+    )
+    db.commit()
+
     # update transactions
-    # todo roll back
-    return True
+    db.execute(
+        "INSERT INTO 'transaction'"
+        " (sender_id, receiver_id, value, currency) "
+        " VALUES (?,?,?,?)",
+        (sender["id"], to_user, amount, 'SGD'),
+    )
+
+    return {
+        "status": "success",
+    }
 
 
 @auth.verify_password
@@ -135,5 +172,4 @@ def transfer_route():
     # todo input validation
     amount = float(amount)
 
-    trans = make_transfer(from_user, to_user, amount)
-    return f"{trans}"
+    return make_transfer(from_user, to_user, amount)

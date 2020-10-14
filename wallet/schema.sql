@@ -38,3 +38,6 @@ INSERT INTO wallet (user_id, value, currency) VALUES
 
 INSERT INTO 'transaction' (sender_id, receiver_id, created, value, currency) VALUES
     (1, 2, DateTime('now'), 50.0, 'SGD');
+
+INSERT INTO 'transaction' (sender_id, receiver_id, created, value, currency) VALUES
+(1, 2, DateTime('now'), 12.01, 'SGD');
