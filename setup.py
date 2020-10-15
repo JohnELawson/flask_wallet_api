@@ -10,8 +10,8 @@ setup(
         "flask==1.1.2",
         "Flask-HTTPAuth==4.1.0",
         "Werkzeug==1.0.1",
-        "pytes==6.1.1",
-        "coverage==5.3",
+        "pytest==6.1.1",
+        "pytest-cov==2.10.1",
     ],
 )
 

@@ -1,4 +1,3 @@
-from wallet.db import get_db
 from typing import Mapping, Any
 from flask_httpauth import HTTPBasicAuth
 from werkzeug.security import check_password_hash
@@ -8,7 +7,9 @@ from flask import (
     jsonify,
     escape,
     current_app,
+    abort,
 )
+from wallet.db import get_db
 
 
 auth = HTTPBasicAuth()
@@ -27,8 +28,7 @@ def get_balance(username: str) -> float:
         (username,)
     ).fetchone()
 
-
-    bal =  {
+    bal = {
         "balance": wallet["value"],
         "currency": wallet["currency"]
     }
@@ -145,10 +145,12 @@ def verify_password(username, password):
     ).fetchone()
 
     if user is None:
-        error = "Incorrect username."
+        current_app.logger.info(f"verify_password - incorrect username")
+        abort(401)
         # todo handle errors
     elif not check_password_hash(user["password"], password):
-        error = "Incorrect password."
+        current_app.logger.info(f"verify_password - incorrect password")
+        abort(401)
 
     return user["username"]
 

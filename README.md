@@ -8,9 +8,10 @@ python3 -m venv .venv
 source .venv/bin/activate
 pip3 install -e .
 ```
-Set env vars `export FLASK_APP=wallet`
+Set env vars `export FLASK_APP=wallet` and `export FLASK_ENV=development`
 Init db with `flask init-db`
 Run with `flask run`
+Test with ` python3 -m pytest --cov=wallet tests/`
 
 ### Functionality
 1) Query user name with `GET /wallet/`

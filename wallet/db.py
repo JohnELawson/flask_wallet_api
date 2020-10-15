@@ -6,14 +6,14 @@ from flask.cli import with_appcontext
 
 def get_db():
     # if not already connected
-    # if 'db' not in g:
-    # connect
-    g.db = sqlite3.connect(
-        current_app.config['DATABASE'],
-        detect_types=sqlite3.PARSE_DECLTYPES,
-    )
-    # return rows that behave like dicts
-    g.db.row_factory = sqlite3.Row
+    if 'db' not in g:
+        # connect
+        g.db = sqlite3.connect(
+            current_app.config['DATABASE'],
+            detect_types=sqlite3.PARSE_DECLTYPES,
+        )
+        # return rows that behave like dicts
+        g.db.row_factory = sqlite3.Row
 
     return g.db
 
@@ -41,7 +41,7 @@ def init_db():
 def init_db_command():
     # clear existing data and create new db
     init_db()
-    click.echo("initialized the database")
+    click.echo("Initialized the database")
 
 
 def init_app(app):

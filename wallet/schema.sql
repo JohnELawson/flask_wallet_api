@@ -15,7 +15,7 @@ CREATE TABLE user (
 CREATE TABLE wallet (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     user_id INTEGER NOT NULL,
-    value REAL NOT NULL DEFAULT 0.0,
+    value DOUBLE NOT NULL DEFAULT 0.0,
     currency TEXT NOT NULL,
     FOREIGN KEY (user_id) REFERENCES user (id)
 );
@@ -25,7 +25,7 @@ CREATE TABLE 'transaction' (
     sender_id INTEGER NOT NULL,
     receiver_id INTEGER NOT NULL,
     created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    value REAL NOT NULL,
+    value DOUBLE NOT NULL,
     currency TEXT NOT NULL,
     FOREIGN KEY (sender_id) REFERENCES user (id),
     FOREIGN KEY (receiver_id) REFERENCES user (id)
