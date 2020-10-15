@@ -1,5 +1,10 @@
 # Wallet
-A simple wallet api written in flask
+A simple wallet api written in flask.
+
+It exposes several apis for users to check their balance, transaction history and transfer funds to other users.
+The flask app uses a Sqlite DB to store users, their wallet(s) and transaction history. 
+The apis are authenticated with HTMLBasicAuth.
+This mvp version does not allow user creation.
 
 ### How to run
 Install requirements with 
