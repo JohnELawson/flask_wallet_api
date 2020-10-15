@@ -17,7 +17,7 @@ auth = HTTPBasicAuth()
 bp = Blueprint('wallet', __name__, url_prefix='/wallet')
 
 
-def get_balance(username: str) -> float:
+def get_balance(username: str) -> Mapping[str, Any]:
     """ return users balance """
     current_app.logger.info(f"get_balance - User: {username}")
     db = get_db()
