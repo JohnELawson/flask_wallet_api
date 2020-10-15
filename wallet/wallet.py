@@ -85,7 +85,7 @@ def make_transfer(from_username: str, to_user: str, amount: float) -> Mapping[st
             "status": "error",
             "reason": "receiving user does not exist"
         }
-        bp.logger.error(f"make_transfer: {response}")
+        current_app.logger.error(f"make_transfer: {response}")
         return response
 
     # check sender has enough funds
@@ -96,7 +96,7 @@ def make_transfer(from_username: str, to_user: str, amount: float) -> Mapping[st
             "status": "error",
             "reason": "sending user does not have enough funds"
         }
-        bp.logger.error(f"make_transfer: {response}")
+        current_app.logger.error(f"make_transfer: {response}")
         return response
 
     to_balance = get_balance(from_username)
@@ -146,11 +146,11 @@ def verify_password(username, password):
 
     if user is None:
         current_app.logger.info(f"verify_password - incorrect username")
-        abort(401)
+        abort(403)
         # todo handle errors
     elif not check_password_hash(user["password"], password):
         current_app.logger.info(f"verify_password - incorrect password")
-        abort(401)
+        abort(403)
 
     return user["username"]
 
@@ -182,8 +182,9 @@ def transactions_route():
 @auth.login_required
 def transfer_route():
     from_user = auth.current_user()
-    to_user = escape(request.form.get('to_user_id'))
-    amount = request.form.get('amount')
+    content = request.get_json(silent=True)
+    to_user = escape(content['to_user_id'])
+    amount = content['amount']
     # todo input validation
     amount = float(amount)
 
