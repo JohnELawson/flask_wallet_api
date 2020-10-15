@@ -57,3 +57,6 @@ Hardcoded users for mvp:
 john / pass1
 sophie / pass2
 ```
+
+# Future updates
+A killer feature would be to add phone push notifications for when any transaction has been made on a users account. 
