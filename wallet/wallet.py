@@ -52,7 +52,7 @@ def get_transactions(username: str, limit: int = 10) -> Mapping[str, Any]:
 
     data = []
     for row in rows:
-        # get receiver name
+        # get receiver name - probably can merge this in above sql
         receiver = db.execute("SELECT username FROM user WHERE id = ?", (row["receiver_id"],)).fetchone()
 
         data.append({
@@ -80,12 +80,13 @@ def make_transfer(from_username: str, to_user: str, amount: float) -> Mapping[st
 
     # check receiver exists
     receiver = db.execute("SELECT * FROM user WHERE id = ?", (to_user,)).fetchone()
+
     if receiver is None:
         response = {
             "status": "error",
             "reason": "receiving user does not exist"
         }
-        current_app.logger.error(f"make_transfer: {response}")
+        current_app.logger.info(f"make_transfer: {response}")
         return response
 
     # check sender has enough funds
@@ -96,10 +97,8 @@ def make_transfer(from_username: str, to_user: str, amount: float) -> Mapping[st
             "status": "error",
             "reason": "sending user does not have enough funds"
         }
-        current_app.logger.error(f"make_transfer: {response}")
+        current_app.logger.info(f"make_transfer: {response}")
         return response
-
-    to_balance = get_balance(from_username)
 
     # update from wallet
     db.execute(
@@ -165,12 +164,14 @@ def index_route():
 @bp.route('/balance', methods=['GET'])
 @auth.login_required
 def balance_route():
+    """ get balance """
     return get_balance(auth.current_user())
 
 
 @bp.route('/transactions', methods=['GET'])
 @auth.login_required
 def transactions_route():
+    """ list transactions """
     limit = request.args.get('limit', 10)
     # todo check input
     limit = int(limit)
@@ -181,6 +182,7 @@ def transactions_route():
 @bp.route('/transfer', methods=['POST'])
 @auth.login_required
 def transfer_route():
+    """ make a transfer """
     from_user = auth.current_user()
     content = request.get_json(silent=True)
     to_user = escape(content['to_user_id'])
