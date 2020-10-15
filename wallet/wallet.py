@@ -7,6 +7,7 @@ from flask import (
     request,
     jsonify,
     escape,
+    current_app,
 )
 
 
@@ -17,7 +18,7 @@ bp = Blueprint('wallet', __name__, url_prefix='/wallet')
 
 def get_balance(username: str) -> float:
     """ return users balance """
-    # app.logger.info(f"get_balance - User: {username}")
+    current_app.logger.info(f"get_balance - User: {username}")
     db = get_db()
     wallet = db.execute(
         "SELECT *"
@@ -26,16 +27,18 @@ def get_balance(username: str) -> float:
         (username,)
     ).fetchone()
 
-    # app.logger.debug(f"get_balance - balance: {balance}")
-    return {
+
+    bal =  {
         "balance": wallet["value"],
         "currency": wallet["currency"]
     }
+    current_app.logger.debug(f"get_balance - balance: {bal}")
+    return bal
 
 
 def get_transactions(username: str, limit: int = 10) -> Mapping[str, Any]:
     """ return users transactions """
-    # app.logger.info(f"get_transactions - User: {username}, Limit: {limit}")
+    current_app.logger.info(f"get_transactions - User: {username}, Limit: {limit}")
 
     db = get_db()
     rows = db.execute(
@@ -60,13 +63,15 @@ def get_transactions(username: str, limit: int = 10) -> Mapping[str, Any]:
             "currency": row["currency"],
         })
 
-    # app.logger.debug(f"get_transactions - transactions: {trans}")
+    current_app.logger.debug(f"get_transactions - transactions: {data}")
     return data
 
 
 def make_transfer(from_username: str, to_user: str, amount: float) -> Mapping[str, str]:
     """ pay a user """
-    # need some sort of strong consistency / mutex around this to ensure the funds arent spent twice at the same time
+    current_app.logger.info(f"make_transfer - From user: {from_username}, to_user: {to_user}, amount: {amount}")
+
+    # todo need some sort of strong consistency / mutex around this to ensure the funds arent spent twice at the same time
 
     db = get_db()
 
@@ -76,19 +81,23 @@ def make_transfer(from_username: str, to_user: str, amount: float) -> Mapping[st
     # check receiver exists
     receiver = db.execute("SELECT * FROM user WHERE id = ?", (to_user,)).fetchone()
     if receiver is None:
-        return {
+        response = {
             "status": "error",
             "reason": "receiving user does not exist"
         }
+        bp.logger.error(f"make_transfer: {response}")
+        return response
 
     # check sender has enough funds
     # assuming one currency
     from_balance = get_balance(from_username)["balance"]
     if from_balance < amount:
-        return {
+        response = {
             "status": "error",
             "reason": "sending user does not have enough funds"
         }
+        bp.logger.error(f"make_transfer: {response}")
+        return response
 
     to_balance = get_balance(from_username)
 
@@ -99,7 +108,8 @@ def make_transfer(from_username: str, to_user: str, amount: float) -> Mapping[st
         " WHERE user_id = ?",
         (amount, sender["id"]),
     )
-    db.commit()
+    # db.commit()
+    # todo better rounding / storage of floats
 
     # update from wall
     db.execute(
@@ -117,10 +127,13 @@ def make_transfer(from_username: str, to_user: str, amount: float) -> Mapping[st
         " VALUES (?,?,?,?)",
         (sender["id"], to_user, amount, 'SGD'),
     )
+    db.commit()
 
-    return {
+    response = {
         "status": "success",
     }
+    current_app.logger.debug(f"make_transfer - transactions: {response}")
+    return response
 
 
 @auth.verify_password

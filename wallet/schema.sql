@@ -1,6 +1,10 @@
+-- noinspection SqlNoDataSourceInspectionForFile
+
 DROP TABLE IF EXISTS user;
 DROP TABLE IF EXISTS wallet;
 DROP TABLE IF EXISTS 'transaction';
+
+-- noinspection SqlNoDataSourceInspection
 
 CREATE TABLE user (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
